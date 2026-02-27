@@ -261,6 +261,8 @@ const ProductsSection = () => {
 // Architecture Section
 const ArchitectureSection = () => {
   const [activeTab, setActiveTab] = useState(0)
+  const [isAutoPlay, setIsAutoPlay] = useState(true)
+  const [isHovered, setIsHovered] = useState(false)
   
   const tabs = [
     {
@@ -306,11 +308,13 @@ const ArchitectureSection = () => {
   ]
 
   useEffect(() => {
+    if (!isAutoPlay || isHovered) return
+    
     const interval = setInterval(() => {
-      setActiveTab((prev) => (prev + 1) % 5)
-    }, 3000)
+      setActiveTab((prev) => (prev + 1) % tabs.length)
+    }, 4000)
     return () => clearInterval(interval)
-  }, [])
+  }, [isAutoPlay, isHovered, tabs.length])
 
   return (
     <section id="services" className="py-20 bg-white">
@@ -322,6 +326,32 @@ const ArchitectureSection = () => {
           </p>
         </div>
         
+        {/* Auto-play control */}
+        <div className="flex justify-center mb-6">
+          <button
+            onClick={() => setIsAutoPlay(!isAutoPlay)}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm text-gray-600 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            aria-label={isAutoPlay ? '暂停自动切换' : '开始自动切换'}
+          >
+            {isAutoPlay ? (
+              <>
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <rect x="6" y="4" width="4" height="12" rx="1" />
+                  <rect x="12" y="4" width="4" height="12" rx="1" />
+                </svg>
+                <span>暂停轮播</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M4 4l12 6-12 6z" />
+                </svg>
+                <span>自动轮播</span>
+              </>
+            )}
+          </button>
+        </div>
+
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Tabs */}
           <div className="lg:w-1/3">
@@ -330,24 +360,47 @@ const ArchitectureSection = () => {
                 <button
                   key={index}
                   onClick={() => setActiveTab(index)}
-                  className={`w-full text-left px-6 py-4 rounded-xl transition-all ${
+                  onMouseEnter={() => setIsHovered(true)}
+                  onMouseLeave={() => setIsHovered(false)}
+                  className={`w-full text-left px-6 py-4 rounded-xl transition-all duration-200 ease-out focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                     activeTab === index
                       ? 'bg-primary text-white shadow-lg'
                       : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                   }`}
+                  aria-selected={activeTab === index}
+                  role="tab"
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-semibold">{tab.title}</span>
-                    <ChevronRight className={`transform transition-transform ${activeTab === index ? 'rotate-90' : ''}`} size={18} />
+                    <ChevronRight 
+                      className={`transform transition-transform duration-200 ease-out ${activeTab === index ? 'rotate-90' : ''}`} 
+                      size={18} 
+                    />
                   </div>
+                  {/* Progress bar for active tab */}
+                  {activeTab === index && isAutoPlay && (
+                    <div className="mt-3 h-0.5 bg-white/30 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-white/80 rounded-full animate-progress"
+                        style={{ animationDuration: '4s' }}
+                      />
+                    </div>
+                  )}
                 </button>
               ))}
             </div>
           </div>
           
           {/* Content */}
-          <div className="lg:w-2/3">
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 h-full">
+          <div 
+            className="lg:w-2/3"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            <div 
+              key={activeTab}
+              className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 h-full tab-content-enter"
+            >
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
                 {tabs[activeTab].content.title}
               </h3>
@@ -356,7 +409,10 @@ const ArchitectureSection = () => {
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {tabs[activeTab].content.points.map((point, index) => (
-                  <div key={index} className="flex items-center bg-white rounded-lg p-4 shadow-sm">
+                  <div 
+                    key={index} 
+                    className="flex items-center bg-white rounded-lg p-4 shadow-sm card-lift"
+                  >
                     <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mr-3">
                       <span className="text-primary font-bold text-sm">{index + 1}</span>
                     </div>
